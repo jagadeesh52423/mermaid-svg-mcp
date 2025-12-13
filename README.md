@@ -12,7 +12,17 @@ A simplified Model Context Protocol (MCP) server that generates SVG files from M
 
 ## Installation
 
+### From npm (Recommended)
+
 ```bash
+npm install -g mermaid-svg-mcp
+```
+
+### From source
+
+```bash
+git clone <repository-url>
+cd mermaid-svg-mcp
 npm install
 npm run build
 ```
@@ -21,7 +31,34 @@ npm run build
 
 ### As MCP Server
 
-Add to your MCP client configuration:
+Add to your MCP client configuration (typically in `mcp.json` or Claude Desktop config):
+
+#### Using npx (recommended - no global install needed):
+
+```json
+{
+  "mcpServers": {
+    "mermaid-svg": {
+      "command": "npx",
+      "args": ["-y", "mermaid-svg-mcp"]
+    }
+  }
+}
+```
+
+#### Using global install:
+
+```json
+{
+  "mcpServers": {
+    "mermaid-svg": {
+      "command": "mermaid-svg-mcp"
+    }
+  }
+}
+```
+
+#### Using local development version:
 
 ```json
 {
