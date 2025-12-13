@@ -1,0 +1,6 @@
+{
+  "enabledMcpjsonServers": [
+    "mermaid-svg"
+  ],
+  "enableAllProjectMcpServers": true
+}

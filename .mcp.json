@@ -1,0 +1,9 @@
+{
+    "mcpServers": {
+        "mermaid-svg": {
+            "command": "node",
+            "args": ["/Users/jagadeeshpulamarasetti/OwnCode/mermaid-svg-mcp/dist/index.js"],
+            "env": {}
+        }
+    }
+}
