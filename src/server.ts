@@ -26,6 +26,10 @@ const MermaidSvgSchema = z.object({
     .describe("Background color for the diagram (CSS color value)")
     .optional()
     .default("white"),
+  filename: z
+    .string()
+    .describe("Optional filename for the SVG file (without extension)")
+    .optional(),
 });
 
 type MermaidSvgInput = z.infer<typeof MermaidSvgSchema>;
@@ -49,6 +53,10 @@ function createInputSchema() {
         type: "string",
         description: "Background color for the diagram (CSS color value)",
         default: "white"
+      },
+      filename: {
+        type: "string",
+        description: "Optional filename for the SVG file (without extension)"
       }
     },
     required: ["mermaid"]
@@ -94,7 +102,7 @@ export function createServer(): Server {
           );
         }
 
-        const { mermaid: diagramCode, theme, backgroundColor } = result.data;
+        const { mermaid: diagramCode, theme, backgroundColor, filename: userFilename } = result.data;
 
         // Render the mermaid diagram to SVG
         const renderResult = await isomorphicRenderer.renderToSvg(diagramCode, {
@@ -110,10 +118,16 @@ export function createServer(): Server {
         }
 
         // Always save to file
-        // Create a unique filename with timestamp and random suffix
-        const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-        const randomSuffix = Math.random().toString(36).substring(2, 8);
-        const filename = `mermaid-${timestamp}-${randomSuffix}.svg`;
+        // Use user-provided filename or create a unique filename with timestamp and random suffix
+        let filename: string;
+        if (userFilename) {
+          // Ensure the filename has .svg extension
+          filename = userFilename.endsWith('.svg') ? userFilename : `${userFilename}.svg`;
+        } else {
+          const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+          const randomSuffix = Math.random().toString(36).substring(2, 8);
+          filename = `mermaid-${timestamp}-${randomSuffix}.svg`;
+        }
 
         // Use current working directory to save the file
         const filePath = path.resolve(process.cwd(), filename);
