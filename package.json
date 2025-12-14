@@ -1,6 +1,6 @@
 {
   "name": "mermaid-svg-mcp",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A simplified MCP server for generating SVG files from Mermaid diagrams",
   "type": "module",
   "main": "dist/index.js",
