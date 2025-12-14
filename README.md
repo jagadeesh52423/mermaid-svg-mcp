@@ -7,6 +7,7 @@ A simplified Model Context Protocol (MCP) server that generates SVG files from M
 - **Single Focus**: Only generates SVG output - no base64, PNG, or file outputs
 - **Theme Support**: Supports 5 built-in Mermaid themes (default, base, forest, dark, neutral)
 - **Background Colors**: Customizable background colors for diagrams
+- **Custom Filenames**: Optional filename parameter for controlling output file names
 - **Clean API**: Simple, focused tool interface
 - **Puppeteer-Based**: Uses headless browser for reliable rendering
 
@@ -79,18 +80,21 @@ The server provides a single tool: `generate_mermaid_svg`
 - `mermaid` (required): The Mermaid diagram syntax
 - `theme` (optional): Theme name - one of: default, base, forest, dark, neutral
 - `backgroundColor` (optional): CSS color value for background (default: "white")
+- `filename` (optional): Custom filename for the SVG file (without extension)
 
 **Example:**
 ```javascript
 {
   "mermaid": "graph TD\\n    A[Start] --> B{Decision}\\n    B -->|Yes| C[Success]\\n    B -->|No| D[Try Again]\\n    D --> A",
   "theme": "dark",
-  "backgroundColor": "#f0f0f0"
+  "backgroundColor": "#f0f0f0",
+  "filename": "my-flowchart"
 }
 ```
 
 **Returns:**
-- SVG content as text
+- Saves SVG file to disk with specified or auto-generated filename
+- Returns confirmation message with file path
 
 ## Supported Diagram Types
 
