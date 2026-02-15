@@ -10,6 +10,8 @@ import {
 export interface RenderOptions {
   theme?: 'default' | 'base' | 'forest' | 'dark' | 'neutral';
   backgroundColor?: string;
+  customCSS?: string;
+  svgDefs?: string;
 }
 
 export interface SimplifiedRenderResult {
@@ -40,7 +42,7 @@ export class IsomorphicMermaidRenderer {
     }
 
     try {
-      const { theme = 'default', backgroundColor = 'white' } = options;
+      const { theme = 'default', backgroundColor = 'white', customCSS = '', svgDefs = '' } = options;
 
       // Create temporary CSS file for background color
       const cssContent = `svg { background: ${backgroundColor}; }`;
@@ -95,6 +97,16 @@ export class IsomorphicMermaidRenderer {
           svgContent = this.addBackgroundToSvg(svgContent, backgroundColor);
         }
 
+        // Inject custom CSS into the SVG's <style> block so it persists in the output
+        if (customCSS) {
+          svgContent = this.injectCustomCSS(svgContent, customCSS);
+        }
+
+        // Inject custom SVG <defs> (gradients, patterns, filters, etc.)
+        if (svgDefs) {
+          svgContent = this.injectSvgDefs(svgContent, svgDefs);
+        }
+
         return { svg: svgContent };
       } else {
         const error = result.reason;
@@ -109,6 +121,59 @@ export class IsomorphicMermaidRenderer {
         svg: '',
         error: `Failed to render mermaid diagram: ${errorMessage}`
       };
+    }
+  }
+
+  private injectSvgDefs(svgContent: string, svgDefs: string): string {
+    try {
+      // If there's an existing <defs> block, append inside it
+      const defsCloseIndex = svgContent.lastIndexOf('</defs>');
+      if (defsCloseIndex !== -1) {
+        return svgContent.slice(0, defsCloseIndex) +
+          `\n<!-- Custom SVG Defs -->\n${svgDefs}\n` +
+          svgContent.slice(defsCloseIndex);
+      }
+
+      // No <defs> block — create one right after the opening <svg> tag
+      const svgMatch = svgContent.match(/<svg[^>]*>/);
+      if (svgMatch) {
+        const insertPos = svgMatch.index! + svgMatch[0].length;
+        return svgContent.slice(0, insertPos) +
+          `\n<defs>\n<!-- Custom SVG Defs -->\n${svgDefs}\n</defs>` +
+          svgContent.slice(insertPos);
+      }
+
+      return svgContent;
+    } catch (error) {
+      console.error('Error injecting SVG defs:', error);
+      return svgContent;
+    }
+  }
+
+  private injectCustomCSS(svgContent: string, customCSS: string): string {
+    try {
+      // Find the last </style> tag in the SVG and inject custom CSS before it.
+      // This ensures custom rules come after Mermaid's own styles, giving them higher precedence.
+      const lastStyleCloseIndex = svgContent.lastIndexOf('</style>');
+      if (lastStyleCloseIndex !== -1) {
+        return svgContent.slice(0, lastStyleCloseIndex) +
+          `\n/* Custom CSS */\n${customCSS}\n` +
+          svgContent.slice(lastStyleCloseIndex);
+      }
+
+      // No <style> tag found — create one right after the opening <svg> tag
+      const svgMatch = svgContent.match(/<svg[^>]*>/);
+      if (svgMatch) {
+        const insertPos = svgMatch.index! + svgMatch[0].length;
+        return svgContent.slice(0, insertPos) +
+          `<style>\n/* Custom CSS */\n${customCSS}\n</style>` +
+          svgContent.slice(insertPos);
+      }
+
+      return svgContent;
+    } catch (error) {
+      console.error('Error injecting custom CSS into SVG:', error);
+      return svgContent;
     }
   }
 

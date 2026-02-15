@@ -8,6 +8,8 @@ A simplified Model Context Protocol (MCP) server that generates SVG files from M
 - **Theme Support**: Supports 5 built-in Mermaid themes (default, base, forest, dark, neutral)
 - **Background Colors**: Customizable background colors for diagrams
 - **Custom Filenames**: Optional filename parameter for controlling output file names
+- **Custom CSS Styling**: Inject custom CSS to style nodes, edges, labels, and more
+- **SVG Defs Injection**: Add custom gradients, patterns, filters, and markers via the `<defs>` block
 - **Clean API**: Simple, focused tool interface
 - **Puppeteer-Based**: Uses headless browser for reliable rendering
 
@@ -81,6 +83,8 @@ The server provides a single tool: `generate_mermaid_svg`
 - `theme` (optional): Theme name - one of: default, base, forest, dark, neutral
 - `backgroundColor` (optional): CSS color value for background (default: "white")
 - `filename` (optional): Custom filename for the SVG file (without extension)
+- `customCSS` (optional): Custom CSS styles injected into the SVG's `<style>` block for fine-grained control over diagram appearance
+- `svgDefs` (optional): Raw SVG markup injected into the `<defs>` block — use for gradients, patterns, filters, markers, etc. Reference them in `customCSS` via `url(#id)`
 
 **Example:**
 ```javascript
@@ -92,9 +96,43 @@ The server provides a single tool: `generate_mermaid_svg`
 }
 ```
 
+**Example with Custom CSS:**
+```javascript
+{
+  "mermaid": "graph TD\\n    A[Start] --> B[End]",
+  "customCSS": ".node rect { fill: #ff6347; stroke: #333; } .edgeLabel { font-size: 14px; font-weight: bold; }"
+}
+```
+
+**Example with Gradient Borders (svgDefs + customCSS):**
+```javascript
+{
+  "mermaid": "graph TD\\n    A[Start] --> B{Decision}\\n    B -->|Yes| C[Success]\\n    B -->|No| D[Retry]",
+  "svgDefs": "<linearGradient id=\"borderGrad\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\"><stop offset=\"0%\" stop-color=\"#ff6347\"/><stop offset=\"100%\" stop-color=\"#4CAF50\"/></linearGradient>",
+  "customCSS": ".node rect, .node polygon { stroke: url(#borderGrad); stroke-width: 3px; }"
+}
+```
+
 **Returns:**
 - Saves SVG file to disk with specified or auto-generated filename
 - Returns confirmation message with file path
+
+## Common CSS Selectors
+
+When using `customCSS`, these selectors target common Mermaid diagram elements:
+
+| Selector | Target |
+|----------|--------|
+| `.node rect` | Flowchart node backgrounds |
+| `.node circle` | Circular nodes |
+| `.node polygon` | Diamond/decision nodes |
+| `.label` | Node label text |
+| `.edgeLabel` | Text on edges/arrows |
+| `.edgePath path` | Edge/arrow lines |
+| `.cluster rect` | Subgraph backgrounds |
+| `.messageText` | Sequence diagram messages |
+| `.taskText` | Gantt chart task labels |
+| `.entityBox` | ER diagram entity boxes |
 
 ## Supported Diagram Types
 

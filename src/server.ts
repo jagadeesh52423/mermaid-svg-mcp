@@ -30,6 +30,16 @@ const MermaidSvgSchema = z.object({
     .string()
     .describe("Optional filename for the SVG file (without extension)")
     .optional(),
+  customCSS: z
+    .string()
+    .describe("Custom CSS styles to apply to the diagram (e.g., '.node rect { fill: #ff6347; }' to change node colors, '.edgeLabel { font-size: 14px; }' to style edge labels)")
+    .optional()
+    .default(""),
+  svgDefs: z
+    .string()
+    .describe("Raw SVG markup to inject into the <defs> block. Use this for gradients, patterns, filters, markers, etc. Then reference them in customCSS (e.g., define a <linearGradient id=\"grad1\"> here and use 'stroke: url(#grad1)' in customCSS)")
+    .optional()
+    .default(""),
 });
 
 type MermaidSvgInput = z.infer<typeof MermaidSvgSchema>;
@@ -57,6 +67,16 @@ function createInputSchema() {
       filename: {
         type: "string",
         description: "Optional filename for the SVG file (without extension)"
+      },
+      customCSS: {
+        type: "string",
+        description: "Custom CSS styles to apply to the diagram (e.g., '.node rect { fill: #ff6347; }' to change node colors, '.edgeLabel { font-size: 14px; }' to style edge labels)",
+        default: ""
+      },
+      svgDefs: {
+        type: "string",
+        description: "Raw SVG markup to inject into the <defs> block. Use this for gradients, patterns, filters, markers, etc. Then reference them in customCSS (e.g., define a <linearGradient id=\"grad1\"> here and use 'stroke: url(#grad1)' in customCSS)",
+        default: ""
       }
     },
     required: ["mermaid"]
@@ -102,12 +122,14 @@ export function createServer(): Server {
           );
         }
 
-        const { mermaid: diagramCode, theme, backgroundColor, filename: userFilename } = result.data;
+        const { mermaid: diagramCode, theme, backgroundColor, filename: userFilename, customCSS, svgDefs } = result.data;
 
         // Render the mermaid diagram to SVG
         const renderResult = await isomorphicRenderer.renderToSvg(diagramCode, {
           theme,
           backgroundColor,
+          customCSS,
+          svgDefs,
         });
 
         if (renderResult.error) {
